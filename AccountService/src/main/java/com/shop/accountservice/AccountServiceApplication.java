@@ -1,4 +1,4 @@
-package org.example.accountservice;
+package com.shop.accountservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
