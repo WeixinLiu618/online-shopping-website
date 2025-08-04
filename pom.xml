@@ -10,6 +10,7 @@
 
     <modules>
         <module>AccountService</module>
+        <module>AuthService</module>
         <module>ItemService</module>
         <module>OrderService</module>
         <module>PaymentService</module>
