@@ -48,3 +48,4 @@ application-*.yml
 
 # Test reports
 surefire-reports/
+
