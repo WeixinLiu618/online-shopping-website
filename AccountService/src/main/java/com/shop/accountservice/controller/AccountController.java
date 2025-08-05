@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+/**
+ * register, update, lookup
+ */
 @RestController
 @RequestMapping("/api/accounts")
 @RequiredArgsConstructor
