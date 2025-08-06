@@ -5,9 +5,9 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-@EnableAutoConfiguration(exclude = {
-        org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration.class
-})
+//@EnableAutoConfiguration(exclude = {
+//        org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration.class
+//})
 class AccountServiceApplicationTests {
 
     @Test
