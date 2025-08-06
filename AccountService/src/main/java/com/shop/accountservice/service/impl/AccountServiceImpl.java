@@ -2,6 +2,8 @@ package com.shop.accountservice.service.impl;
 
 import com.shop.accountservice.entity.Account;
 import com.shop.accountservice.entity.AccountStatus;
+import com.shop.accountservice.exception.AccountNotFoundException;
+import com.shop.accountservice.exception.EmailAlreadyExistException;
 import com.shop.accountservice.payload.AccountDto;
 import com.shop.accountservice.payload.CreateAccountRequest;
 import com.shop.accountservice.payload.UpdateAccountRequest;
@@ -27,7 +29,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public AccountDto createAccount(CreateAccountRequest request) {
         if (accountRepository.existsByEmail(request.getEmail())) {
-            throw new IllegalArgumentException("Email already exists");
+            throw new EmailAlreadyExistException("Email already exists");
         }
 
         Account account = modelMapper.map(request, Account.class);
@@ -43,7 +45,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public AccountDto updateAccount(UUID accountId, UpdateAccountRequest request) {
-        Account account = accountRepository.findById(accountId).orElseThrow(() -> new IllegalArgumentException("Account not found"));
+        Account account = accountRepository.findById(accountId).orElseThrow(() -> new AccountNotFoundException("Account not found"));
         if (request.getUsername() != null) {
             account.setUsername(request.getUsername());
         }
