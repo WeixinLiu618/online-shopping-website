@@ -1,6 +1,7 @@
 package com.shop.authservice.service;
 
 import com.shop.authservice.client.AccountClient;
+import com.shop.authservice.exception.InvalidCredentialsException;
 import com.shop.authservice.payload.AccountAuthResponse;
 import com.shop.authservice.payload.LoginRequest;
 import com.shop.authservice.payload.LoginResponse;
@@ -22,7 +23,7 @@ public class AuthService {
         AccountAuthResponse account = accountClient.getAccountForAuth(request.getEmail());
 
         if (account == null || !passwordEncoder.matches(request.getPassword(), account.getPasswordHash())) {
-            throw new IllegalArgumentException("Invalid email or password");
+            throw new InvalidCredentialsException("Invalid email or password");
         }
 
         String token = jwtUtil.generateToken(account.getEmail(), account.getRoles());
