@@ -29,6 +29,7 @@ public class AuthService {
         String token = jwtUtil.generateToken(account.getEmail(), account.getRoles());
         return LoginResponse.builder()
                 .token(token)
+                .tokenType("Bearer")  // add this line
                 .expiresIn(System.currentTimeMillis() + 3600000)
                 .build();
     }
