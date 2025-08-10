@@ -1,4 +1,4 @@
-package org.example.itemservice;
+package com.shop.itemservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
