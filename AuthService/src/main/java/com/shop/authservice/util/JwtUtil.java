@@ -1,9 +1,12 @@
 package com.shop.authservice.util;
 
 import io.jsonwebtoken.*;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.security.Key;
 import java.util.Date;
 
 @Component
@@ -15,26 +18,38 @@ public class JwtUtil {
     @Value("${jwt.expiration}")
     private long expiration;
 
+    private Key signingKey() {
+        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
+    }
+
     public String generateToken(String email, String[] roles) {
         return Jwts.builder()
                 .setSubject(email)
                 .claim("roles", roles)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(SignatureAlgorithm.HS256, secret)
+                .signWith(signingKey())
                 .compact();
     }
 
     public boolean validateToken(String token) {
         try {
-            Jwts.parser().setSigningKey(secret).parseClaimsJws(token);
+            Jwts.parserBuilder()
+                    .setSigningKey(signingKey())
+                    .build()
+                    .parseClaimsJws(token);
             return true;
-        } catch (JwtException ex) {
+        } catch (Exception ex) {
             return false;
         }
     }
 
     public String getEmailFromToken(String token) {
-        return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody().getSubject();
+        return Jwts.parserBuilder()
+                .setSigningKey(signingKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject();
     }
 }
