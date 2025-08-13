@@ -3,9 +3,10 @@ package com.shop.orderservice.payload;
 import lombok.*;
 import java.math.BigDecimal;
 
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 @Builder
 public class PaymentSnapshotDto {
     private String method;

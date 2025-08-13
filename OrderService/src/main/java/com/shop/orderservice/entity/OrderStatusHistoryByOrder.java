@@ -9,8 +9,10 @@ import java.util.Map;
 import java.util.UUID;
 
 @Table("order_status_history_by_order")
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class OrderStatusHistoryByOrder {
 
@@ -25,15 +27,17 @@ public class OrderStatusHistoryByOrder {
     private Map<String, String> metadata;
 
     @PrimaryKeyClass
-    @Getter @Setter
-    @NoArgsConstructor @AllArgsConstructor
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
     @Builder
     public static class Key {
-        @PrimaryKeyColumn(type = PrimaryKeyType.PARTITIONED)
+        @PrimaryKeyColumn(name = "order_id", type = PrimaryKeyType.PARTITIONED)
         private UUID orderId;
 
         // timeline per order
-        @PrimaryKeyColumn(type = PrimaryKeyType.CLUSTERED, ordering = Ordering.ASCENDING)
+        @PrimaryKeyColumn(name = "event_ts", type = PrimaryKeyType.CLUSTERED, ordering = Ordering.ASCENDING)
         private UUID eventTs; // timeuuid
     }
 }

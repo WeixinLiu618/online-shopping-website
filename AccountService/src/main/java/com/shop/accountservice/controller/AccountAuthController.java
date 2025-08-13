@@ -38,6 +38,8 @@ public class AccountAuthController {
                 .email(account.getEmail())
                 .passwordHash(account.getPasswordHash())
                 .roles(account.getRoles().toArray(new String[0]))
+                .userId(account.getId())
+                .status(account.getStatus().name())
                 .build();
 
         return ResponseEntity.ok(response);
