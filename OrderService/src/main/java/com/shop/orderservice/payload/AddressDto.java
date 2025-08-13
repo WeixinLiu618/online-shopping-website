@@ -2,9 +2,11 @@ package com.shop.orderservice.payload;
 
 import lombok.*;
 
-@Data
+
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 @Builder
 public class AddressDto {
     private String name;

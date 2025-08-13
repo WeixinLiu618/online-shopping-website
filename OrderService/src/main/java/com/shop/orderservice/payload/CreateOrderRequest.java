@@ -4,9 +4,10 @@ import lombok.*;
 import java.util.List;
 import java.util.UUID;
 
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 @Builder
 public class CreateOrderRequest {
     private UUID userId;

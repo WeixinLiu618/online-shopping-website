@@ -2,9 +2,10 @@ package com.shop.orderservice.payload;
 
 import lombok.*;
 
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 @Builder
 public class UpdateOrderStatusRequest {
     private String status;  // e.g. PAID / SHIPPED / CANCELLED ...

@@ -13,24 +13,35 @@ import java.util.List;
 import java.util.UUID;
 
 @Table("orders_by_id")
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class OrdersById {
 
-    @PrimaryKey
+    @PrimaryKey("order_id")
     private UUID orderId;
 
+    @Column("user_id")
     private UUID userId;
+
+    @Column("created_at")
     private Instant createdAt;
+
+    @Column("updated_at")
     private Instant updatedAt;
-    private String status;                // enum name
+    private String status;
+
+    @Column("total_amount")
     private BigDecimal totalAmount;
     private String currency;
 
+    @Column("shipping_addr")
     @CassandraType(type = CassandraType.Name.UDT, userTypeName = "address")
     private Address shippingAddr;
 
+    @Column("billing_addr")
     @CassandraType(type = CassandraType.Name.UDT, userTypeName = "address")
     private Address billingAddr;
 
