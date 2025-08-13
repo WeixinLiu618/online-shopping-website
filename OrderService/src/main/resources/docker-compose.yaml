@@ -1,0 +1,29 @@
+version: "3.8"
+services:
+  eureka:
+    image: openjdk:22-jdk
+    container_name: eureka
+    ports: ["8761:8761"]
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    volumes:
+      - ./eureka-server/app.jar:/app.jar
+    command: ["java","-jar","/app.jar"]
+
+  item-service:
+    build: ./item-service
+    depends_on: [eureka]
+    environment:
+      EUREKA_URL: http://eureka:8761/eureka
+      SERVER_PORT: 8082
+      SPRING_APPLICATION_NAME: item-service
+    ports: ["8082:8082"]
+
+  order-service:
+    build: ./order-service
+    depends_on: [eureka, item-service]
+    environment:
+      EUREKA_URL: http://eureka:8761/eureka
+      SERVER_PORT: 8083
+      SPRING_APPLICATION_NAME: order-service
+    ports: ["8083:8083"]
