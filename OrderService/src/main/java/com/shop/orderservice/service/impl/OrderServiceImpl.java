@@ -6,7 +6,10 @@ import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.shop.orderservice.client.ItemClient;
 import com.shop.orderservice.entity.*;
 import com.shop.orderservice.entity.udt.*;
+import com.shop.orderservice.event.KafkaTopics;
+import com.shop.orderservice.event.OrderEvent;
 import com.shop.orderservice.exception.InsufficientInventoryException;
+import com.shop.orderservice.kafka.OrderEventProducer;
 import com.shop.orderservice.payload.*;
 import com.shop.orderservice.repository.*;
 import com.shop.orderservice.service.OrderService;
@@ -18,7 +21,6 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +31,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderStatusHistoryRepository orderStatusHistoryRepo;
     private final ModelMapper mapper;
     private final ItemClient itemClient;
+    private final OrderEventProducer eventProducer;
 
     @Override
     public OrderDto createOrder(CreateOrderRequest req) {
@@ -108,6 +111,17 @@ public class OrderServiceImpl implements OrderService {
                 .build();
         orderStatusHistoryRepo.save(hist);
 
+        // send kafka msg
+        eventProducer.sendEvent(KafkaTopics.ORDER_CREATED, OrderEvent.builder()
+                .orderId(orderId)
+                .userId(req.getUserId())
+                .status(OrderStatus.CREATED.name())
+                .amount(total)
+                .currency(req.getCurrency())
+                .createdAt(now)
+                .build());
+
+
         // 6) 返回 DTO
         return mapper.map(obid, OrderDto.class);
     }
@@ -143,6 +157,30 @@ public class OrderServiceImpl implements OrderService {
                 .actor(actor)
                 .build();
         orderStatusHistoryRepo.save(hist);
+
+        // === Kafka event emit ===
+        if (OrderStatus.PAID.name().equals(req.getStatus())) {
+            eventProducer.sendEvent(KafkaTopics.ORDER_PAID, OrderEvent.builder()
+                    .orderId(orderId)
+                    .userId(orderById.getUserId())
+                    .status(OrderStatus.PAID.name())
+                    .amount(orderById.getTotalAmount())
+                    .currency(orderById.getCurrency())
+                    .createdAt(orderById.getCreatedAt())
+                    .build());
+        }
+
+        if (OrderStatus.CANCELLED.name().equals(req.getStatus())) {
+            eventProducer.sendEvent(KafkaTopics.ORDER_CANCELLED, OrderEvent.builder()
+                    .orderId(orderId)
+                    .userId(orderById.getUserId())
+                    .status(OrderStatus.CANCELLED.name())
+                    .amount(orderById.getTotalAmount())
+                    .currency(orderById.getCurrency())
+                    .createdAt(orderById.getCreatedAt())
+                    .build());
+        }
+
 
         return mapper.map(orderById, OrderDto.class);
     }
