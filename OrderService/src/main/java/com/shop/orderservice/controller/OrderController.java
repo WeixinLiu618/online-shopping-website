@@ -67,10 +67,10 @@ public class OrderController {
      */
     @PreAuthorize("@orderAuthorization.canCancel(#orderId)")
     @PostMapping("/{orderId}/cancel")
-    public ResponseEntity<Void> cancel(@PathVariable UUID orderId,
+    public ResponseEntity<Object> cancel(@PathVariable UUID orderId,
                                        @RequestParam(required = false) String reason) {
         String actor = SecurityContextHolder.getContext().getAuthentication().getName();
         orderService.cancelOrder(orderId, reason, actor);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok("Order cancel successfully!");
     }
 }

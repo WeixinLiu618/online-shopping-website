@@ -49,10 +49,10 @@
 		</dependency>
 
 		<!-- 如果要用 Redis 限流 -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-redis-reactive</artifactId>
-		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>org.springframework.boot</groupId>-->
+<!--			<artifactId>spring-boot-starter-data-redis-reactive</artifactId>-->
+<!--		</dependency>-->
 
 		<!-- JWT 解析（与你现有 Auth 的 JwtUtil 对齐：jjwt 或 nimbus 都行，示例用 jjwt-impl） -->
 		<dependency>
