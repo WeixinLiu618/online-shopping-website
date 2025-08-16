@@ -1,0 +1,27 @@
+# git
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+*.iml
+
+# builds
+**/target
+**/out
+.mvn
+.settings
+
+# OS
+.DS_Store
+Thumbs.db
+
+# node / front-end (如有)
+node_modules
+dist
+build
+
+# local configs
+**/application-local.yml
+.env

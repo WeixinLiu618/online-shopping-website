@@ -5,6 +5,7 @@ import com.shop.accountservice.payload.AccountDto;
 import com.shop.accountservice.payload.CreateAccountRequest;
 import com.shop.accountservice.payload.UpdateAccountRequest;
 import com.shop.accountservice.service.AccountService;
+import com.shop.accountservice.util.JwtUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,16 +21,17 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AccountController {
     private final AccountService accountService;
+    private final JwtUtil jwtUtil;
 
     @PostMapping("/register")
     public ResponseEntity<AccountDto> createAccount(@Valid @RequestBody CreateAccountRequest request) {
         return ResponseEntity.ok(accountService.createAccount(request));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<AccountDto> updateAccount(@PathVariable UUID id,
-                                                    @Valid @RequestBody UpdateAccountRequest request) {
-        return ResponseEntity.ok(accountService.updateAccount(id, request));
+    @PutMapping("/me")
+    public ResponseEntity<AccountDto> updateAccount(@Valid @RequestBody UpdateAccountRequest request) {
+        UUID currentUserId = jwtUtil.getCurrentUserId(); //
+        return ResponseEntity.ok(accountService.updateAccount(currentUserId, request));
     }
 
     @GetMapping("/{id}")

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -30,9 +31,11 @@ public class JwtFilter extends OncePerRequestFilter {
             String token = header.substring(7);
 
             if (jwtUtil.validateToken(token)) {
+                UUID userId = jwtUtil.getUserIdFromToken(token);
                 String email = jwtUtil.getEmailFromToken(token);
+
                 UsernamePasswordAuthenticationToken auth =
-                        new UsernamePasswordAuthenticationToken(email, null, null);
+                        new UsernamePasswordAuthenticationToken(email, token, null);
                 SecurityContextHolder.getContext().setAuthentication(auth);
             }
         }

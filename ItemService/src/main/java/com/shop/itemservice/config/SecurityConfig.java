@@ -24,7 +24,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // 先限制写操作（必须放前面）
+                        // 先限制写操作
                         .requestMatchers(HttpMethod.POST,   "/api/items").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.PATCH,  "/api/items/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/items/**").hasAuthority("ROLE_ADMIN")

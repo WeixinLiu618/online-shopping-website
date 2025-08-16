@@ -2,6 +2,8 @@ package com.shop.accountservice.service.impl;
 
 import com.shop.accountservice.entity.Account;
 import com.shop.accountservice.entity.AccountStatus;
+import com.shop.accountservice.entity.Address;
+import com.shop.accountservice.entity.PaymentMethod;
 import com.shop.accountservice.exception.AccountNotFoundException;
 import com.shop.accountservice.exception.EmailAlreadyExistException;
 import com.shop.accountservice.payload.AccountDto;
@@ -9,7 +11,9 @@ import com.shop.accountservice.payload.CreateAccountRequest;
 import com.shop.accountservice.payload.UpdateAccountRequest;
 import com.shop.accountservice.repository.AccountRepository;
 import com.shop.accountservice.service.AccountService;
+import com.shop.accountservice.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,6 +21,7 @@ import org.springframework.stereotype.Service;
 import java.util.Set;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AccountServiceImpl implements AccountService {
@@ -24,6 +29,7 @@ public class AccountServiceImpl implements AccountService {
     private final AccountRepository accountRepository;
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
 
     @Override
@@ -45,19 +51,34 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public AccountDto updateAccount(UUID accountId, UpdateAccountRequest request) {
+//        boolean isAdmin = auth.getAuthorities().stream()
+//                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
         Account account = accountRepository.findById(accountId).orElseThrow(() -> new AccountNotFoundException("Account not found"));
+
         if (request.getUsername() != null) {
             account.setUsername(request.getUsername());
         }
-        if (request.getShippingAddress() != null)
-            account.setShippingAddress(modelMapper.map(request.getShippingAddress(), account.getShippingAddress().getClass()));
-        if (request.getBillingAddress() != null)
-            account.setBillingAddress(modelMapper.map(request.getBillingAddress(), account.getBillingAddress().getClass()));
-        if (request.getPaymentMethod() != null)
-            account.setPaymentMethod(modelMapper.map(request.getPaymentMethod(), account.getPaymentMethod().getClass()));
-        if (request.getPhoneNumber() != null) account.setPhoneNumber(request.getPhoneNumber());
-        if (request.getProfileImageUrl() != null) account.setProfileImageUrl(request.getProfileImageUrl());
 
+        if (request.getShippingAddress() != null) {
+            account.setShippingAddress(modelMapper.map(request.getShippingAddress(), Address.class));
+        }
+
+        if (request.getBillingAddress() != null) {
+            account.setBillingAddress(modelMapper.map(request.getBillingAddress(), Address.class));
+        }
+
+        if (request.getPaymentMethod() != null) {
+            account.setPaymentMethod(modelMapper.map(request.getPaymentMethod(), PaymentMethod.class));
+        }
+
+        if (request.getPhoneNumber() != null) {
+            account.setPhoneNumber(request.getPhoneNumber());
+        }
+
+        if (request.getProfileImageUrl() != null) {
+            account.setProfileImageUrl(request.getProfileImageUrl());
+        }
         Account updated = accountRepository.save(account);
         return modelMapper.map(updated, AccountDto.class);
     }

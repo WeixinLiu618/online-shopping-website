@@ -39,7 +39,7 @@ public class OrderServiceImpl implements OrderService {
         var orderId = UUID.randomUUID();
         var createdTs = Uuids.timeBased(); // timeuuid，用于用户订单列表和历史时间线
 
-        // 1) 行项目校验：存在性 + 库存；价格以 Item Service 为准（忽略客户端传入）
+        // 1) 行项目校验：存在性 + 库存；价格以 Item Service 为准
         List<ItemLine> lines = req.getItems().stream()
                 .map(reqLine -> {
                     ItemServiceItemDto item = itemClient.getItem(reqLine.getItemId()); // 不存在将抛 FeignException.NotFound
@@ -112,7 +112,7 @@ public class OrderServiceImpl implements OrderService {
         orderStatusHistoryRepo.save(hist);
 
         // send kafka msg
-        eventProducer.sendEvent(KafkaTopics.ORDER_CREATED, OrderEvent.builder()
+        eventProducer.sendEvent(KafkaTopics.ORDER_EVENT, OrderEvent.builder()
                 .orderId(orderId)
                 .userId(req.getUserId())
                 .status(OrderStatus.CREATED.name())
@@ -136,8 +136,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<OrderDto> listOrdersByUser(UUID userId, int pageSize, String pagingState) {
         // TODO: implement driver paging. For now, leave unimplemented or return empty list.
-        // 提示：这里推荐用 Spring Data Cassandra + PagingState 实现真正分页。
-        // 先留空实现，避免引入额外依赖；需要时我可以给你完整分页代码。
+        // 用 Spring Data Cassandra + PagingState 实现真正分页。
         throw new UnsupportedOperationException("Implement Cassandra paging with PagingState");
     }
 
@@ -160,7 +159,7 @@ public class OrderServiceImpl implements OrderService {
 
         // === Kafka event emit ===
         if (OrderStatus.PAID.name().equals(req.getStatus())) {
-            eventProducer.sendEvent(KafkaTopics.ORDER_PAID, OrderEvent.builder()
+            eventProducer.sendEvent(KafkaTopics.ORDER_EVENT, OrderEvent.builder()
                     .orderId(orderId)
                     .userId(orderById.getUserId())
                     .status(OrderStatus.PAID.name())
@@ -171,7 +170,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         if (OrderStatus.CANCELLED.name().equals(req.getStatus())) {
-            eventProducer.sendEvent(KafkaTopics.ORDER_CANCELLED, OrderEvent.builder()
+            eventProducer.sendEvent(KafkaTopics.ORDER_EVENT, OrderEvent.builder()
                     .orderId(orderId)
                     .userId(orderById.getUserId())
                     .status(OrderStatus.CANCELLED.name())

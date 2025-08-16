@@ -1,0 +1,183 @@
+version: "3.9"
+
+services:
+  # === Infra ===
+  eureka:
+    build: ./EurekaServer            # 若暂时没有 Dockerfile，可改用 image: netflixoss/eureka:1.4.12
+    container_name: eureka
+    ports:
+      - "8761:8761"
+
+  mysql:
+    image: mysql:8
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpass}
+      MYSQL_DATABASE: ${MYSQL_DB:-shopdb}
+      MYSQL_USER: ${MYSQL_USER:-shop}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-shop123}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD","mysqladmin","ping","-h","127.0.0.1","-u$$MYSQL_USER","-p$$MYSQL_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  mongo:
+    image: mongo:6
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  cassandra:
+    image: cassandra:4.1
+    container_name: cassandra
+    environment:
+      CASSANDRA_DC: datacenter1
+      CASSANDRA_CLUSTER_NAME: shop-cluster
+    ports:
+      - "9042:9042"
+    volumes:
+      - cassandra_data:/var/lib/cassandra
+    healthcheck:
+      test: ["CMD","cqlsh","-e","DESCRIBE KEYSPACES"]
+      interval: 20s
+      timeout: 10s
+      retries: 15
+
+  zookeeper:
+    image: bitnami/zookeeper:3.9
+    container_name: zookeeper
+    environment:
+      ALLOW_ANONYMOUS_LOGIN: "yes"
+    ports:
+      - "2181:2181"
+    volumes:
+      - zk_data:/bitnami
+
+  kafka:
+    image: bitnami/kafka:3.6
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    environment:
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+    ports:
+      - "9092:9092"
+    volumes:
+      - kafka_data:/bitnami/kafka
+
+
+  # === Apps ===
+  api-gateway:
+    build: ./API_Gateway
+    container_name: api-gateway
+    depends_on:
+      - eureka
+      - auth-service
+      - account-service
+      - item-service
+      - order-service
+      - payment-service
+    ports:
+      - "8080:8080"
+    environment:
+      SERVER_PORT: "8080"
+      JWT_SECRET: ${JWT_SECRET}
+      EUREKA_URL: http://eureka:8761/eureka
+      # 如需启用自动发现路由：
+      DISCOVERY_LOCATOR_ENABLED: "true"
+
+  auth-service:
+    build: ./AuthService
+    container_name: auth-service
+    ports:
+      - "8085:8085"
+    environment:
+      SERVER_PORT: "8085"
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: "36000000"
+      INTERNAL_TOKEN: ${INTERNAL_TOKEN:-12345678}
+      EUREKA_URL: http://eureka:8761/eureka
+
+  account-service:
+    build: ./AccountService
+    container_name: account-service
+    ports:
+      - "8081:8081"
+    environment:
+      SERVER_PORT: "8081"
+      JWT_SECRET: ${JWT_SECRET}
+      MYSQL_URL: jdbc:mysql://mysql:3306/${MYSQL_DB:-shopdb}?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+      MYSQL_USERNAME: ${MYSQL_USER:-shop}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-shop123}
+      JPA_DDL_AUTO: update
+      EUREKA_URL: ${EUREKA_URL}
+      INTERNAL_TOKEN: ${INTERNAL_TOKEN}
+    depends_on:
+      - mysql
+
+  item-service:
+    build: ./ItemService
+    container_name: item-service
+    ports:
+      - "8082:8082"
+    environment:
+      SERVER_PORT: "8082"
+      JWT_SECRET: ${JWT_SECRET}
+      MONGODB_URI: mongodb://mongo:27017/${MONGO_DB:-shopdb}
+      EUREKA_URL: ${EUREKA_URL}
+    depends_on:
+      - mongo
+
+  order-service:
+    build: ./OrderService
+    container_name: order-service
+    ports:
+      - "8083:8083"
+    environment:
+      SERVER_PORT: "8083"
+      JWT_SECRET: ${JWT_SECRET}
+      CASSANDRA_CONTACT_POINTS: cassandra
+      CASSANDRA_PORT: "9042"
+      CASSANDRA_KEYSPACE: shop
+      CASSANDRA_DC: datacenter1
+      CASSANDRA_SCHEMA_ACTION: CREATE_IF_NOT_EXISTS
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      EUREKA_URL: ${EUREKA_URL}
+    depends_on:
+      - cassandra
+      - kafka
+
+  payment-service:
+    build: ./PaymentService
+    container_name: payment-service
+    ports:
+      - "8084:8084"
+    environment:
+      SERVER_PORT: "8084"
+      JWT_SECRET: ${JWT_SECRET}
+      MYSQL_URL: jdbc:mysql://mysql:3306/${MYSQL_DB:-shopdb}?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+      MYSQL_USERNAME: ${MYSQL_USER:-shop}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-shop123}
+      JPA_DDL_AUTO: update     # 本地可 update；生产请用 validate+迁移工具
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      EUREKA_URL: ${EUREKA_URL}
+    depends_on:
+      - mysql
+      - kafka
+
+volumes:
+  mysql_data:
+  mongo_data:
+  cassandra_data:
+  kafka_data:
+  zk_data:

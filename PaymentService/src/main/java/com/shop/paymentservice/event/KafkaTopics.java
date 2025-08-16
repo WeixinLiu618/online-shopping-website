@@ -1,7 +1,6 @@
 package com.shop.paymentservice.event;
 
 public class KafkaTopics {
-    public static final String ORDER_CREATED = "order.created";
-    public static final String ORDER_PAID = "order.paid";
-    public static final String ORDER_CANCELLED = "order.cancelled";
+    public static final String ORDER_EVENT = "order_event";
+    public static final String PAYMENT_EVENT = "payment_event";
 }

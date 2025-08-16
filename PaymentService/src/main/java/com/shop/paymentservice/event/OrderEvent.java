@@ -11,7 +11,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @Builder
-public class OrderCreatedEvent {
+public class OrderEvent {
     private UUID orderId;
     private UUID userId;
     private String status;

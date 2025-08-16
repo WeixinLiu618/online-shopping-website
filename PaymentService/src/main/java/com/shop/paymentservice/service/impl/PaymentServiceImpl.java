@@ -3,7 +3,7 @@ package com.shop.paymentservice.service.impl;
 import com.shop.paymentservice.entity.Payment;
 import com.shop.paymentservice.entity.PaymentMethod;
 import com.shop.paymentservice.entity.PaymentStatus;
-import com.shop.paymentservice.event.OrderCreatedEvent;
+import com.shop.paymentservice.event.OrderEvent;
 import com.shop.paymentservice.repository.PaymentRepository;
 import com.shop.paymentservice.service.PaymentService;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +18,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentRepository paymentRepository;
 
     @Override
-    public void handleOrderCreatedEvent(OrderCreatedEvent event) {
+    public void handleOrderCreatedEvent(OrderEvent event) {
         paymentRepository.findByOrderId(event.getOrderId()).orElseGet(() -> {
             Payment payment = Payment.builder()
                     .orderId(event.getOrderId())
