@@ -1,0 +1,52 @@
+# Java build outputs
+target/
+build/
+out/
+
+# Logs
+*.log
+logs/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# Eclipse
+.project
+.classpath
+.settings/
+bin/
+
+# VS Code
+.vscode/
+
+# Maven wrapper
+.mvn/
+!/.mvn/wrapper/maven-wrapper.jar
+
+# Gradle wrapper
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.swp
+*.swo
+
+# Spring Boot configuration files with sensitive info
+application.properties
+application.yml
+application-*.properties
+application-*.yml
+
+# Environment files
+.env
+.env.*
+
+# Test reports
+surefire-reports/
+
+**/application-local.yml
