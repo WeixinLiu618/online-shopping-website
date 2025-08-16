@@ -1,158 +1,68 @@
-# online-shopping-website
+`online-shopping-website`
 
----
+### **Core Microservices**
 
-### ✅ **Account Service Responsibilities**
+1. **AccountService**
 
-The **Account Service** handles everything related to **user account management** and **authentication**. Its main functions include:
+   * Manages user accounts, roles, and profile information.
 
-1.  **Create Account (Registration)**
+   * Stores account data in MySQL.
 
-    -   Accept user details and create a new account.
+2. **AuthService**
 
-    -   Validate:
+   * Handles authentication – Login.
 
-        -   Unique email.
+   * Uses JWT tokens.
 
-        -   Strong password policy.
+   * Integrates with `AccountService` to validate users.
 
-    -   Hash password before storing.
+3. **ItemService**
 
-    -   Optionally send a welcome email (future extension).
+   * Provides item metadata and inventory management.
 
-2.  **Update Account**
+   * Stores data in MongoDB.
 
-    -   Allow users to update:
+   * GET endpoints are public, while POST/PATCH are restricted to `ROLE_ADMIN`.
 
-        -   **Name**
+4. **OrderService**
 
-        -   **Shipping Address**
+   * Handles order creation, updates, and status tracking.
 
-        -   **Billing Address**
+   * Supports both synchronous REST APIs and asynchronous Kafka events (`order.created`, `order.paid`, `order.cancelled`).
 
-        -   **Payment Method**
+   * Uses Cassandra to persist order states.
 
-    -   Ensure the email (username) is immutable or requires special verification if changed.
+5. **PaymentService**
 
-    -   Validate data before update.
+   * Simulates payment flow (submit, lookup).
 
-3.  **Account Lookup**
+   * Listens for `order.created` events and publishes `order.paid`.
 
-    -   Retrieve user details by:
+   * Stores payment records (possibly Cassandra as well).
 
-        -   User ID
+### **Infrastructure Components**
 
-        -   Email (for authentication or admin lookup).
+6. **API\_Gateway**
 
-    -   Exclude sensitive fields like password hash in responses.
+   * Central entry point for clients.
 
-4.  **Authentication & Token Generation**
+   * Routes requests to appropriate services.
 
-    -   Login with email and password.
+   * Secures endpoints using Spring Cloud Gateway.
 
-    -   Validate credentials against hashed password.
+7. **EurekaServer**
 
-    -   Generate **JWT token** after successful login.
+   * Service discovery for all microservices.
 
-    -   Token will be used to authenticate requests to other services (Order, Payment).
+   * Each service registers itself to Eureka.
 
-5.  **Authorization**
+未完待续：
 
-    -   Apply **role-based authorization** (`ROLE_USER`, `ROLE_ADMIN`) for restricted actions like deleting accounts or admin lookups.
+* Thorough exception handling  
+* Wallet Service （mock payment)  
+* Acid of db  
+1. How will the item quantity change after order, and what if multiple people order simultaneously(lack of item)—-- fallback  
+   1. After order, send msg to item service with order timestamp( make sure item db 做完一次quantity update 才能进行下一次 乐观锁. If lack of item, cancel order  
+   2. After payment successfully, send msg to item service,  make sure item db 做完一次quantity update 才能进行下一次 乐观锁. If lack of item, do the refund and cancel order
 
-6.  **Password Management**
-
-    -   Allow user to reset password securely (future extension).
-
-    -   Current scope: update password via `PUT /account/{id}` with old password validation.
-
-7.  **Delete Account** (Optional but common)
-
-    -   Soft delete user or mark account as inactive (to preserve order history).
-
-
----
-
-### ✅ **Account Data Model**
-
-User account should store the following **fields**:
-
-| Field | Required | Notes |
-| --- | --- | --- |
-| **id** | Yes | UUID (Primary Key) |
-| **email** | Yes | Unique, used for login |
-| **username** | Yes | Display name |
-| **password** | Yes | Hashed (BCrypt) |
-| **shippingAddress** | Yes | Full address object (street, city, zip, etc.) |
-| **billingAddress** | Yes | Can be same as shipping |
-| **paymentMethod** | Yes | Store masked card info or payment token |
-| **roles** | Yes | Default `ROLE_USER` |
-| **createdAt** | Yes | Timestamp |
-| **updatedAt** | Yes | Timestamp |
-
----
-
-### ✅ **Endpoints**
-
-| HTTP Method | Endpoint | Description |
-| --- | --- | --- |
-| `POST` | `/api/accounts/register` | Create account |
-| `POST` | `/api/accounts/login` | Login & get JWT |
-| `GET` | `/api/accounts/me` | Get current account info |
-| `GET` | `/api/accounts/{id}` | Get account by ID (admin only) |
-| `PUT` | `/api/accounts/{id}` | Update account info |
-| `DELETE` | `/api/accounts/{id}` | Delete account (optional) |
-
----
-
-### ✅ **Key Security Logic**
-
--   Password:
-
-    -   Hash using **BCryptPasswordEncoder**.
-
-    -   Never store plain text.
-
--   JWT:
-
-    -   `Authorization: Bearer <token>` in headers.
-
-    -   Validate in every secured endpoint.
-
--   Sensitive Data:
-
-    -   Exclude password and payment details from API responses.
-
-
----
-
-### ✅ **Missing Pieces to Consider**
-
--   **Validation layer** (e.g., `@Valid` + custom constraints for strong passwords, valid emails).
-
--   **Error handling** (e.g., email already exists, invalid password).
-
--   **DTO mapping** (avoid exposing entity directly).
-
--   **Audit fields** (createdAt, updatedAt).
-
--   **Role management** (basic user vs admin).
-
--   **Integration with Payment Service** (future step: validate default payment method token).
-
-
----
-
-Would you like me to now **write the complete Account Service skeleton code** including:
-
--   **Entity**
-
--   **DTOs**
-
--   **Repository**
-
--   **Service Layer**
-
--   **Controller**
-
--   **Spring Security (JWT-based)** configuration
+Kafka ：同一个event 不要放不同的topic
