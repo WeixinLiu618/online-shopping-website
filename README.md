@@ -257,3 +257,4 @@
 3. **Role-Based Access**: Services check user roles for authorization
 4. **Secure Communication**: All inter-service communication uses HTTPS
 5. **Session Management**: Stateless authentication using JWT tokens
+
